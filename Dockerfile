@@ -15,8 +15,10 @@ ENV DISPLAY=:99
 
 
 COPY main.py /
+COPY credentials.json /
 WORKDIR /app
 ADD  . /app
 RUN pip install selenium
+RUN pip install psycopg2-binary
 
 CMD ["python",  "-u", "main.py"]

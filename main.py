@@ -1,5 +1,6 @@
 import os
 import json
+import psycopg2
 from time import sleep
 from datetime import datetime
 from selenium import webdriver
@@ -8,6 +9,9 @@ from selenium.webdriver.chrome.options import Options
 
 url = os.environ['url']
 minutes = int(os.environ['minutes'])
+
+with open("./credentials.json", "r+") as credJson:
+    refs = json.loads(credJson.read())
 
 
 def set_chrome_options():
@@ -22,22 +26,53 @@ def set_chrome_options():
     return options
 
 
-def insert_data(data):
-    print(f"{len(data)} flights were found")
+def insert_data(aircrafts_table, flights_table):
+    conn = psycopg2.connect(dbname=refs["postgres_db"],
+                            user=refs["postgres_user"],
+                            password=refs["postgres_pw"],
+                            host=refs["postgres_host"])
+    cursor = conn.cursor()
+
+    for line in aircrafts_table:
+        query = """ SELECT hexident FROM public.aircrafts_scraping 
+                    WHERE hexident = '{}' fetch first 1 rows only""".format(line[0])
+        cursor.execute(query)
+        record = cursor.fetchone()
+
+        if record is None:
+            insert_query = """ INSERT INTO public.aircrafts_scraping (hexident, type, registration) 
+                               VALUES (%s,%s,%s) """
+            cursor.execute(insert_query, line)
+            conn.commit()
+
+    for line in flights_table:
+        query = """ SELECT callsign_2 FROM public.flights_scraping 
+                    WHERE callsign_2 = '{}' fetch first 1 rows only""".format(line[3])
+        cursor.execute(query)
+        record = cursor.fetchone()
+
+        if record is None:
+            insert_query = """ INSERT INTO public.flights_scraping (from_airport, to_airport, callsign_1, callsign_2, operator) 
+                               VALUES (%s,%s,%s,%s,%s) """
+            cursor.execute(insert_query, line)
+            conn.commit()
+
+    cursor.close()
 
 
 def process_data(data):
-    arr = []
+    aircrafts = []
+    flights = []
     for key in data.keys():
         if isinstance(data[key], list):
             content = data[key]
-            hexident = content[0]
-            from_airport = content[11]
-            to_airport = content[12]
-            if hexident and from_airport and to_airport:
-                print("hexident: {}, from {}, to {}".format(hexident, from_airport, to_airport))
-                arr.append((hexident, from_airport, to_airport))
-    insert_data(arr)
+            hexident, aircraft_type, registration = content[0], content[8], content[9]
+            from_airport, to_airport = content[11], content[12]
+            callsign_1, callsign_2, operator = content[13], content[16], content[18]
+            if hexident and aircraft_type and from_airport and to_airport:
+                aircrafts.append((hexident, aircraft_type, registration))
+                flights.append((from_airport, to_airport, callsign_1, callsign_2, operator))
+    insert_data(aircrafts, flights)
 
 
 def main(web_url):
