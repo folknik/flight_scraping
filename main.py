@@ -50,7 +50,6 @@ def main(web_url):
 
 
 if __name__ == '__main__':
-    # url = "https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=56.50,55.00,36.28,38.86&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=1&estimated=1&maxage=14400&gliders=1&stats=1"
     while True:
         main(flightradar_url=url)
         print("Scraping successfully finished")
