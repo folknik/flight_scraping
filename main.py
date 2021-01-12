@@ -51,7 +51,7 @@ def main(web_url):
 
 if __name__ == '__main__':
     while True:
-        main(flightradar_url=url)
+        main(web_url=url)
         print("Scraping successfully finished")
         print(f"Please wait, script fell asleep for {minutes} minutes")
         sleep(minutes * 60)
