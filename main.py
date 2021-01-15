@@ -5,6 +5,7 @@ from time import sleep
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import WebDriverException
 
 
 url = os.environ['url']
@@ -86,7 +87,10 @@ def main(web_url):
 
 if __name__ == '__main__':
     while True:
-        main(web_url=url)
-        print("Scraping successfully finished")
-        print(f"Please wait, script fell asleep for {minutes} minutes")
-        sleep(minutes * 60)
+        try:
+            main(web_url=url)
+            print("Scraping successfully finished")
+            print(f"Please wait, script fell asleep for {minutes} minutes")
+            sleep(minutes * 60)
+        except WebDriverException as E:
+            print("Chrome has crashed. Let's restart this piece of shit!")
