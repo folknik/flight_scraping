@@ -70,7 +70,7 @@ def process_data(data):
             hexident, aircraft_type, registration = content[0], content[8], content[9]
             from_airport, to_airport = content[11], content[12]
             callsign_1, callsign_2, operator = content[13], content[16], content[18]
-            if hexident and aircraft_type and from_airport and to_airport:
+            if hexident and aircraft_type and (from_airport or to_airport):
                 aircrafts.append((hexident, aircraft_type, registration))
                 flights.append((from_airport, to_airport, callsign_1, callsign_2, operator))
     insert_data(aircrafts, flights)
