@@ -5,14 +5,14 @@ from time import sleep
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import WebDriverException
+from typing import Dict
 
 
 url = os.environ['url']
-minutes = int(os.environ['minutes'])
+minutes = float(os.environ['minutes'])
 
-with open("./credentials.json", "r+") as credJson:
-    refs = json.loads(credJson.read())
+with open("./credentials.json", "r+") as f:
+    refs = json.loads(f.read())
 
 
 def set_chrome_options():
@@ -53,7 +53,8 @@ def insert_data(aircrafts_table, flights_table):
         record = cursor.fetchone()
 
         if record is None:
-            insert_query = """ INSERT INTO public.flights_scraping (from_airport, to_airport, callsign_1, callsign_2, operator) 
+            insert_query = """ INSERT INTO public.flights_scraping (from_airport, to_airport,
+                                            callsign_1, callsign_2, operator)
                                VALUES (%s,%s,%s,%s,%s) """
             cursor.execute(insert_query, line)
             conn.commit()
@@ -61,7 +62,7 @@ def insert_data(aircrafts_table, flights_table):
     cursor.close()
 
 
-def process_data(data):
+def process_data(data: Dict[str, str]) -> None:
     aircrafts = []
     flights = []
     for key in data.keys():
@@ -76,21 +77,20 @@ def process_data(data):
     insert_data(aircrafts, flights)
 
 
-def main(web_url):
-    print(f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, scraping has started")
+def main(web_url: str) -> None:
     driver = webdriver.Chrome(options=set_chrome_options())
-    driver.get(web_url)
-    contents = json.loads(driver.find_element_by_tag_name('pre').text)
-    driver.close()
-    process_data(contents)
-
-
-if __name__ == '__main__':
     while True:
         try:
-            main(web_url=url)
+            print(f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, scraping has started")
+            driver.get(web_url)
+            contents = json.loads(driver.find_element_by_tag_name('pre').text)
+            process_data(contents)
             print("Scraping successfully finished")
             print(f"Please wait, script fell asleep for {minutes} minutes")
             sleep(minutes * 60)
-        except WebDriverException as E:
-            print("Chrome has crashed. Let's restart this piece of shit!")
+        except Exception as e:
+            driver.close()
+
+
+if __name__ == '__main__':
+    main(web_url=url)
