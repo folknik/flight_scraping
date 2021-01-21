@@ -8,7 +8,6 @@ from selenium.webdriver.chrome.options import Options
 from typing import Dict
 
 
-url = os.environ['url']
 minutes = float(os.environ['minutes'])
 
 with open("./credentials.json", "r+") as f:
@@ -77,15 +76,20 @@ def process_data(data: Dict[str, str]) -> None:
     insert_data(aircrafts, flights)
 
 
-def main(web_url: str) -> None:
+def main() -> None:
+    urls = {
+        'Moscow': refs['moscow_url'],
+        'Omsk': refs['omsk_url']
+    }
     driver = webdriver.Chrome(options=set_chrome_options())
     while True:
         try:
             print(f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, scraping has started")
-            driver.get(web_url)
-            contents = json.loads(driver.find_element_by_tag_name('pre').text)
-            process_data(contents)
-            print("Scraping successfully finished")
+            for city in urls.keys():
+                driver.get(urls[city])
+                contents = json.loads(driver.find_element_by_tag_name('pre').text)
+                process_data(contents)
+                print("Scraping successfully finished for {}".format(city))
             print(f"Please wait, script fell asleep for {minutes} minutes")
             sleep(minutes * 60)
         except Exception as e:
@@ -93,4 +97,4 @@ def main(web_url: str) -> None:
 
 
 if __name__ == '__main__':
-    main(web_url=url)
+    main()
