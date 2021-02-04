@@ -81,8 +81,8 @@ def main() -> None:
         'Moscow': refs['moscow_url'],
         'Omsk': refs['omsk_url']
     }
-    driver = webdriver.Chrome(options=set_chrome_options())
     while True:
+        driver = webdriver.Chrome(options=set_chrome_options())
         try:
             print(f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, scraping has started")
             for city in urls.keys():
