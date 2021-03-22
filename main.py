@@ -82,18 +82,22 @@ def main() -> None:
         'Omsk': refs['omsk_url']
     }
     while True:
-        driver = webdriver.Chrome(options=set_chrome_options())
+        driver = webdriver.Chrome('/usr/bin/google-chrome', options=set_chrome_options())
         try:
-            print(f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, scraping has started")
-            for city in urls.keys():
-                driver.get(urls[city])
-                contents = json.loads(driver.find_element_by_tag_name('pre').text)
-                process_data(contents)
-                print("Scraping successfully finished for {}".format(city))
-            print(f"Please wait, script fell asleep for {minutes} minutes")
-            sleep(minutes * 60)
+            while True:
+                print(f"\n\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, scraping has started")
+                for city in urls.keys():
+                    driver.get(urls[city])
+                    contents = json.loads(driver.find_element_by_tag_name('pre').text)
+                    process_data(contents)
+                    print("Scraping successfully finished for {}".format(city))
+                print(f"Please wait, script fell asleep for {minutes} minutes")
+                driver.close()
+                sleep(minutes * 60)
         except Exception as e:
             driver.close()
+            driver.quit()
+            sleep(5 * 60)
 
 
 if __name__ == '__main__':
